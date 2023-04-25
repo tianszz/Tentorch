@@ -35,5 +35,41 @@ class DenseLayers(tf.keras.layers.Layer):
             return self.sequntial(input_tensor)
         
 
+class ResBlock(tf.keras.layers.Layer):
+    def __init__(self, units_1, units_2, drop_rate):
+        super().__init__()
+
+        self.units_1 = units_1
+        self.units_2 = units_2
+        self.drop_rate = drop_rate
+
+    def call(self, input_tensor):
+
+        layers = []
+        layers.append(
+            tf.keras.layers.Dense(
+                units=self.units_1,
+                activation='relu'
+            )
+        )
+        layers.append(
+            tf.keras.layers.Dense(
+                units=self.units_2,
+                activation='linear'
+            )
+        )
+        layers.append(
+            tf.keras.layers.Dropout(
+                self.drop_rate
+            )
+        )
+
+        self.denses = tf.keras.Sequential(layers)
+        self.output = self.denses(input_tensor)
+        self.add = tf.keras.layers.Add()
+        output = self.add([input_tensor, self.output])
+        return tf.keras.layers.LayerNormalization(output)
+        
+
 
 
