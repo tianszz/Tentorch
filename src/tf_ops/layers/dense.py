@@ -1,7 +1,8 @@
 import tensorflow as tf
+from typing import List, Any
 
 class DenseLayers(tf.keras.layers.Layer):
-    def __init__(self, layers, activation, batch_norm, layer_norm, target_dim):
+    def __init__(self, layers: List[Any], activation, batch_norm, layer_norm, target_dim):
         super().__init__()
         self.layers = layers
         self.activation = activation
@@ -65,10 +66,10 @@ class ResBlock(tf.keras.layers.Layer):
         )
 
         self.denses = tf.keras.Sequential(layers)
-        self.output = self.denses(input_tensor)
+        self.out = self.denses(input_tensor)
         self.add = tf.keras.layers.Add()
-        output = self.add([input_tensor, self.output])
-        return tf.keras.layers.LayerNormalization(output)
+        out = self.add([input_tensor, self.out])
+        return tf.keras.layers.LayerNormalization()(out)
         
 
 
