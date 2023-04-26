@@ -2,15 +2,16 @@ import tensorflow as tf
 from typing import List, Any
 
 class DenseLayers(tf.keras.layers.Layer):
-    def __init__(self, layers: List[Any], activation, batch_norm, layer_norm, target_dim):
+    def __init__(self, layers: List[Any], activation, batch_norm, layer_norm, target_dim, out_activation):
         super().__init__()
         self.layers = layers
         self.activation = activation
         self.batch_norm = batch_norm
         self.layer_norm = layer_norm
         self.target_dim = target_dim
+        self.out_activation = out_activation
 
-    def call(self, input_tensor):
+    def build(self, input_shape):
         layers = []
         for layer in self.layers:
             layers.append(
@@ -24,16 +25,16 @@ class DenseLayers(tf.keras.layers.Layer):
             if self.layer_norm:
                 layers.append(tf.keras.layers.LayerNormalization())
 
-            if self.target_dim:
-                layers.append(
-                    tf.keras.layers.Dense(
-                        units=self.target_dim,
-                        activation='linear',
-                    )
-                )
+        layers.append(tf.keras.layers.Dense(
+                units=self.target_dim,
+                activation=self.out_activation,
+            ))
+        
+        self.sequential = tf.keras.Sequential(layers)
 
-            self.sequntial = tf.keras.Sequential(layers)
-            return self.sequntial(input_tensor)
+
+    def call(self, input_tensor):
+        return self.sequential(input_tensor)
         
 
 class ResBlock(tf.keras.layers.Layer):
@@ -44,31 +45,29 @@ class ResBlock(tf.keras.layers.Layer):
         self.units_2 = units_2
         self.drop_rate = drop_rate
 
-    def call(self, input_tensor):
-
-        layers = []
-        layers.append(
-            tf.keras.layers.Dense(
+    def build(self, input_shape):
+        self.layer1 = tf.keras.layers.Dense(
                 units=self.units_1,
                 activation='relu'
             )
-        )
-        layers.append(
-            tf.keras.layers.Dense(
+        
+        self.layer2 = tf.keras.layers.Dense(
                 units=self.units_2,
-                activation='linear'
+                activation='relu'
             )
-        )
-        layers.append(
-            tf.keras.layers.Dropout(
+        self.dropout_layer = tf.keras.layers.Dropout(
                 self.drop_rate
             )
-        )
 
-        self.denses = tf.keras.Sequential(layers)
-        self.out = self.denses(input_tensor)
+
+
+    def call(self, input_tensor):
+        x = self.layer1(input_tensor)
+        x = self.layer2(x)
+        x = self.dropout_layer(x)
+
         self.add = tf.keras.layers.Add()
-        out = self.add([input_tensor, self.out])
+        out = self.add([input_tensor, x])
         return tf.keras.layers.LayerNormalization()(out)
         
 
