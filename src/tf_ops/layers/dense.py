@@ -38,11 +38,10 @@ class DenseLayers(tf.keras.layers.Layer):
         
 
 class ResBlock(tf.keras.layers.Layer):
-    def __init__(self, units_1, units_2, drop_rate):
+    def __init__(self, units_1, drop_rate):
         super().__init__()
 
         self.units_1 = units_1
-        self.units_2 = units_2
         self.drop_rate = drop_rate
 
     def build(self, input_shape):
@@ -52,23 +51,23 @@ class ResBlock(tf.keras.layers.Layer):
             )
         
         self.layer2 = tf.keras.layers.Dense(
-                units=self.units_2,
+                units=input_shape[-1],
                 activation='relu'
             )
         self.dropout_layer = tf.keras.layers.Dropout(
                 self.drop_rate
             )
-
-
+        self.add = tf.keras.layers.Add()
+        self.layer_norm = tf.keras.layers.LayerNormalization()
 
     def call(self, input_tensor):
         x = self.layer1(input_tensor)
         x = self.layer2(x)
         x = self.dropout_layer(x)
 
-        self.add = tf.keras.layers.Add()
+        
         out = self.add([input_tensor, x])
-        return tf.keras.layers.LayerNormalization()(out)
+        return self.layer_norm(out)
         
 
 
