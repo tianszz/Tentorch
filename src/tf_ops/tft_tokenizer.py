@@ -14,6 +14,8 @@ import uuid
 
 class TFTVocab(object):
 
+    # M1 doesn't support TFT
+
     TRAIN = "train"
     EVAL = "eval"
 
