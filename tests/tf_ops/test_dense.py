@@ -23,7 +23,6 @@ class TestResBlock(tf.test.TestCase):
     def test_res_block(self):
         self.d_layer = ResBlock(
             units_1=4,
-            units_2=4,
             drop_rate=0.1
         )
         self.assertEqual(self.d_layer(self.data).shape, [10, 4])
